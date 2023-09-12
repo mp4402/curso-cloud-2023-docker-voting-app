@@ -6,15 +6,24 @@ services:
       - redis
     ports: 
       - "80:80"
+    networks: 
+      - network-frontend
+      - network-backend
   redis:
     image: redis
     restart: always
     depends_on:
       - worker
+    volumes:
+      - redis_data:/data
+    networks: 
+      - network-backend
   worker:
     build: ./worker
     depends_on:
       - db
+    networks: 
+    - network-backend
   db:
     image: postgres
     restart: always
@@ -23,8 +32,24 @@ services:
       POSTGRES_USER: postgres
     depends_on:
       - result
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    networks: 
+      - network-backend
   result:
     build: ./result
     ports:
       - "81:80"
+    networks: 
+      - network-frontend
+      - network-backend
 
+volumes:
+    postgres_data:
+    redis_data:
+
+networks:
+  network-backend:
+      driver: bridge
+  network-frontend:
+      driver: bridge
